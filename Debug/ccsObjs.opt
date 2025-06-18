@@ -1,0 +1,10 @@
+"./accel_6050.obj"
+"./buct_hal.obj"
+"./i2c.obj"
+"./main.obj"
+"./oled.obj"
+"./tm4c123gh6pm_startup_ccs.obj"
+"./uartstdio.obj"
+"D:/TI/driverlib/ccs/Debug/driverlib.lib"
+"../tm4c123gh6pm.cmd"
+-llibc.a

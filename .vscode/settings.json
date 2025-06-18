@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "tm4c123.h": "c",
+        "buct_hal.h": "c"
+    }
+}
