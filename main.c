@@ -17,11 +17,6 @@
 #include "utils/uartstdio.h"
 #include "oled.h"
 
-
-
-
-
-
 void UART2Send(const char *pcBuf)
 {
     while (*pcBuf)
@@ -162,7 +157,6 @@ void UART5_SendString(const char *str) {
         UARTCharPut(UART5_BASE, *str++);
     }
 }
-
 // 软件延时函数
 void soft_delay(volatile uint32_t dly)
 {
@@ -309,7 +303,6 @@ void spinRight(int speed)
     setMotor1(speed);
     setMotor2(-speed);
 }
-
 void Frank(void)
 {
     // 初始化UART
@@ -404,6 +397,22 @@ float MeasureDistance(void)
     }
     
     return distance;
+}
+void Stop(void)
+{
+    whiteOff();
+    redOn();
+    DiOn();
+    SysCtlDelay(SysCtlClockGet()/10);//延时0.15秒
+    DiOff();
+    redOff();
+    redOn();
+    eputs("Stopping\r\n");
+    stopMotors();
+    soft_delay(800000);
+    displayMotorSpeeds();
+    soft_delay(6000000);
+    UART5_SendString("Stopped\r\n");
 }
 
 int main(void)
@@ -503,9 +512,25 @@ int main(void)
                                 UART5_SendString("Distance measurement failed!\r\n");
                             }
                             break;
+                        case 'O': // 前进自动避障
+                            whiteOff();
+                            greenOn();
+                            UART5_SendString("Obstacle Avoiding Forward\r\n");
+                            eputs("Obstacle Avoiding Forward Mode\r\n");
+                            while (1) {
+                                float d = MeasureDistance();
+                                if (d > 0 && d < 30.0f) {
+                                    UART5_SendString("Obstacle detected! Stopping...\r\n");
+                                    Stop();
+                                    break;
+                                }
+                                moveForward(62, 60);  // 继续前进
+                                soft_delay(200000);   // 短暂延时后继续检测
+                            }
+                            break;
+
                         case 'F': // 前进
                             //绿
-                            //check();
                             whiteOff();
                             greenOn();
                             DiOn();
@@ -515,14 +540,14 @@ int main(void)
                             greenOn();
                             eputs("Moving Forward\r\n");
                             moveForward(62, 60);
-                            soft_delay(800000);
+                            soft_delay(8000000);
                             displayMotorSpeeds();
                             soft_delay(3000000);
                             UART5_SendString("Moving Forward\r\n");
+                            stop();
                             break;
                         case 'B': // 后退
                             //蓝
-                            //check();
                             whiteOff();
                             blueOn();
                             DiOn();
@@ -532,15 +557,15 @@ int main(void)
                             blueOn();
                             eputs("Moving Backward\r\n");
                             moveBackward(61, 60);
-                            soft_delay(800000);
+                            soft_delay(8000000);
                             displayMotorSpeeds();
                             soft_delay(3000000);
                             UART5_SendString("Moving Backward\r\n");
+                            stop();
                             break;
                        case 'Q': // 左自转
                             //黄
-                           //check();
-                           whiteOff();
+                            whiteOff();
                             yellowOn();
                             DiOn();
                             SysCtlDelay(SysCtlClockGet()/10);//延时0.15秒
@@ -548,15 +573,15 @@ int main(void)
                             yellowOff();
                             yellowOn();
                             eputs("Spinning Left\r\n");
-                            spinLeft(60);
-                            soft_delay(800000);
+                            spinLeft(70);
+                            soft_delay(6000000);
                             displayMotorSpeeds();
                             soft_delay(3000000);
                             UART5_SendString("Spinning Left\r\n");
+                            stop();
                             break;
                         case 'E': // 右自转
                             //黄
-                            //check();
                             whiteOff();
                             yellowOn();
                             DiOn();
@@ -565,15 +590,15 @@ int main(void)
                             yellowOff();
                             yellowOn();
                             eputs("Spinning Right\r\n");
-                            spinRight(60);
-                            soft_delay(800000);
+                            spinRight(70);
+                            soft_delay(6000000);
                             displayMotorSpeeds();
                             soft_delay(3000000);
                             UART5_SendString("Spinning Right\r\n");
+                            stop();
                             break;
                         case 'S': // 停止
                             //红
-                            //check();
                             whiteOff();
                             redOn();
                             DiOn();
@@ -590,7 +615,6 @@ int main(void)
                             break;
                         case 'A'://左前转
                             //紫
-                            //check();
                             whiteOff();
                             purpleOn();
                             DiOn();
@@ -600,14 +624,14 @@ int main(void)
                             purpleOn();
                             eputs("Turning Forward Left\r\n");
                             turnForwardLeft(57, 65);
-                            soft_delay(800000);
+                            soft_delay(8000000);
                             displayMotorSpeeds();
                             soft_delay(3000000);
                             UART5_SendString("Turning Forward Left\r\n");
+                            stop();
                             break;
                         case 'D'://右前转
                             //紫
-                            //check();
                             whiteOff();
                             purpleOn();
                             DiOn();
@@ -617,14 +641,14 @@ int main(void)
                             purpleOn();
                             eputs("Turning Forward Right\r\n");
                             turnForwardRight(67, 55);
-                            soft_delay(800000);
+                            soft_delay(8000000);
                             displayMotorSpeeds();
                             soft_delay(3000000);
                             UART5_SendString("Turning Forward Right\r\n");
+                            stop();
                             break;
                         case 'Z'://左后转
                             //青
-                            //check();
                             whiteOff();
                             cyanOn();
                             DiOn();
@@ -634,14 +658,14 @@ int main(void)
                             cyanOn();
                             eputs("Turning Backward Left\r\n");
                             turnBackwardLeft(57, 65);
-                            soft_delay(800000);
+                            soft_delay(8000000);
                             displayMotorSpeeds();
                             soft_delay(3000000);
                             UART5_SendString("Turning Backward Left\r\n");
+                            stop();
                             break;
                         case 'C'://右后转
                             //青
-                            //check();
                             whiteOff();
                             cyanOn();
                             DiOn();
@@ -651,10 +675,11 @@ int main(void)
                             cyanOn();
                             eputs("Turning Backward Right\r\n");
                             turnBackwardRight(67, 55);
-                            soft_delay(800000);
+                            soft_delay(8000000);
                             displayMotorSpeeds();
                             soft_delay(3000000);
                             UART5_SendString("Turning Backward Right\r\n");
+                            stop();
                             break;
                         default:
                             UART5_SendString("Unknown Command\r\n");
