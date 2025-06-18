@@ -70,19 +70,10 @@ Send the following characters via Bluetooth to control the car:
 - `OLED_ShowString()`: Display string on OLED
 - `moveForward()/moveBackward()`: Motor control
 
-## Notes
-
-- Power the ultrasonic module with 5V; use a voltage divider for ECHO to PA6
-- Default Bluetooth baud rate is 9600
-- Pull-up resistors are required for OLED/I2C
-- Recommended supply voltage: ≥7.4V
-
 ## Credits
 
-- TI TivaWare library
-- Jiangsu University OLED/MPU6050 driver code
+- Guidance from Prof.Guo & Prof Frank
 - All team members for their contributions
 
----
 
 You are welcome to contribute to this project!

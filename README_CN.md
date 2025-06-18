@@ -70,17 +70,9 @@
 - `OLED_ShowString()`：OLED显示字符串
 - `moveForward()/moveBackward()`：电机控制
 
-## 注意事项
-
-- 超声波模块VCC请接5V，ECHO需分压保护PA6
-- 蓝牙波特率默认为9600
-- OLED/I2C模块需上拉电阻
-- 供电电压建议≥7.4V
-
 ## 致谢
 
-- TI官方TivaWare库
-- 江科大OLED/MPU6050驱动代码
+- 郭青老师和Frank的指导
 - 各位组员的共同努力
 
 欢迎contribution！
