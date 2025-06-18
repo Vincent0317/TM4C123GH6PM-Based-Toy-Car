@@ -1,5 +1,9 @@
 # TM4C123 Bluetooth Smart Car Project
 
+## Project Demo
+
+![Car Demo](img/1.png)
+
 ## Overview
 
 This project is based on the TI TM4C123GH6PM microcontroller and implements a smart car with Bluetooth remote control, OLED display, ultrasonic obstacle avoidance, and MPU6050 accelerometer. You can control the car's movement, speed, and distance measurement via a mobile Bluetooth app.
