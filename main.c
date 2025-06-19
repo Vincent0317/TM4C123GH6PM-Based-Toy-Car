@@ -123,25 +123,25 @@ void DiOn()
 
 void InitUART5(void)
 {
-    // 1. 开启时钟
+    // 开启时钟
     SysCtlPeripheralEnable(SYSCTL_PERIPH_UART5);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
 
     while (!SysCtlPeripheralReady(SYSCTL_PERIPH_UART5)) {}
     while (!SysCtlPeripheralReady(SYSCTL_PERIPH_GPIOE)) {}
 
-    // 2. 配置引脚复用功能
+    // 配置引脚复用功能
     GPIOPinConfigure(GPIO_PE4_U5RX);
     GPIOPinConfigure(GPIO_PE5_U5TX);
 
-    // 3. 设置引脚为 UART 功能
+    // 设置引脚为 UART 功能
     GPIOPinTypeUART(GPIO_PORTE_BASE, GPIO_PIN_4 | GPIO_PIN_5);
 
-    // 4. 配置 UART 参数
+    // 配置 UART 参数
     UARTConfigSetExpClk(UART5_BASE, SysCtlClockGet(), 9600,
                         (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE | UART_CONFIG_PAR_NONE));
 
-    // 5. 启用 UART5
+    // 启用 UART5
     UARTEnable(UART5_BASE);
 }
 
@@ -168,16 +168,17 @@ void displayMotorSpeeds(void)
 {
     int leftSpeed = getQEI0Velocity();
     int rightSpeed = -getQEI1Velocity();
+    char ls[32];
+    char rs[32];
 
     // 打印电机速度
-    eputs("Left: ");
-    eputd(leftSpeed);
-    eputs("  Right: ");
-    eputd(rightSpeed);
-    eputs("\r\n");
+    sprintf(ls, "Left: %d\r\n", leftSpeed);
+    UART5_SendString(ls);
+    sprintf(rs, "Right: %d\r\n", rightSpeed);
+    UART5_SendString(rs);
 }
 
-// 修改后的直线前进函数 - 分别控制左右电机速度
+// 分别控制左右电机速度
 void moveForward(int leftSpeed, int rightSpeed)
 {
     if(leftSpeed < 0) leftSpeed = 0;
@@ -189,7 +190,7 @@ void moveForward(int leftSpeed, int rightSpeed)
     setMotor2(rightSpeed);
 }
 
-// 修改后的直线后退函数 - 分别控制左右电机速度
+// 分别控制左右电机速度
 void moveBackward(int leftSpeed, int rightSpeed)
 {
     if(leftSpeed < 0) leftSpeed = 0;
@@ -208,7 +209,7 @@ void stopMotors(void)
     setMotor2(0);
 }
 
-// 左前转弯函数 - 左轮速度小于右轮
+// 左前转弯函数
 void turnForwardLeft(int leftSpeed, int rightSpeed)
 {
     if(leftSpeed < 0) leftSpeed = 0;
@@ -216,7 +217,6 @@ void turnForwardLeft(int leftSpeed, int rightSpeed)
     if(leftSpeed > 100) leftSpeed = 100;
     if(rightSpeed > 100) rightSpeed = 100;
 
-    // 左轮速度小于右轮才是左转
     if(leftSpeed > rightSpeed) {
         int temp = leftSpeed;
         leftSpeed = rightSpeed;
@@ -227,7 +227,7 @@ void turnForwardLeft(int leftSpeed, int rightSpeed)
     setMotor2(rightSpeed);
 }
 
-// 右前转弯函数 - 右轮速度小于左轮
+// 右前转弯函数
 void turnForwardRight(int leftSpeed, int rightSpeed)
 {
     if(leftSpeed < 0) leftSpeed = 0;
@@ -235,7 +235,6 @@ void turnForwardRight(int leftSpeed, int rightSpeed)
     if(leftSpeed > 100) leftSpeed = 100;
     if(rightSpeed > 100) rightSpeed = 100;
 
-    // 右轮速度小于左轮才是右转
     if(rightSpeed > leftSpeed) {
         int temp = rightSpeed;
         rightSpeed = leftSpeed;
@@ -246,7 +245,7 @@ void turnForwardRight(int leftSpeed, int rightSpeed)
     setMotor2(rightSpeed);
 }
 
-// 左后转弯函数 - 左轮速度小于右轮，但方向相反
+// 左后转弯函数
 void turnBackwardLeft(int leftSpeed, int rightSpeed)
 {
     if(leftSpeed < 0) leftSpeed = 0;
@@ -254,7 +253,6 @@ void turnBackwardLeft(int leftSpeed, int rightSpeed)
     if(leftSpeed > 100) leftSpeed = 100;
     if(rightSpeed > 100) rightSpeed = 100;
 
-    // 左轮速度小于右轮才是左转
     if(leftSpeed > rightSpeed) {
         int temp = leftSpeed;
         leftSpeed = rightSpeed;
@@ -265,7 +263,7 @@ void turnBackwardLeft(int leftSpeed, int rightSpeed)
     setMotor2(-rightSpeed);
 }
 
-// 右后转弯函数 - 右轮速度小于左轮，但方向相反
+// 右后转弯函数
 void turnBackwardRight(int leftSpeed, int rightSpeed)
 {
     if(leftSpeed < 0) leftSpeed = 0;
@@ -273,7 +271,6 @@ void turnBackwardRight(int leftSpeed, int rightSpeed)
     if(leftSpeed > 100) leftSpeed = 100;
     if(rightSpeed > 100) rightSpeed = 100;
 
-    // 右轮速度小于左轮才是右转
     if(rightSpeed > leftSpeed) {
         int temp = rightSpeed;
         rightSpeed = leftSpeed;
@@ -353,17 +350,17 @@ float MeasureDistance(void)
     float distance = 0.0;
     uint32_t timeout;
     
-    // 1. 确保TRIG引脚为低
+    // 确保TRIG引脚为低
     GPIOA_DATA &= ~BIT7;                  // TRIG = 0
     SysCtlDelay(1333);                    // 约100us延时
     
-    // 2. 发送触发脉冲
+    // 发送触发脉冲
     GPIOA_DATA |= BIT7;                   // TRIG = 1
     SysCtlDelay(200);                     // 约15us延时，确保大于10us
     
     GPIOA_DATA &= ~BIT7;                  // TRIG = 0
     
-    // 3. 等待ECHO变高
+    // 等待ECHO变高
     timeout = 1000000;
     while(!(GPIOA_DATA & BIT6) && timeout--) {
         // 等待回波开始
@@ -373,7 +370,7 @@ float MeasureDistance(void)
         return -1.0f; // 超时，未收到回波
     }
     
-    // 4. 计数ECHO高电平持续时间
+    // 计数ECHO高电平持续时间
     pulseWidth = 0;
     timeout = 1000000;
     
@@ -386,12 +383,12 @@ float MeasureDistance(void)
         return -1.0f; // 超时，回波过长
     }
     
-    // 5. 计算距离 - 使用标准公式
+    // 计算距离 - 使用标准公式
     // 声速340m/s，来回需要除以2
     // 距离(cm) = 时间(us) / 142
     distance = (float)pulseWidth / 142.0f; // 标准校准系数
     
-    // 6. 有效性检查
+    // 有效性检查
     if(distance < 1.0f || distance > 400.0f) {
         return -1.0f; // 超出有效范围
     }
@@ -539,7 +536,7 @@ int main(void)
                             greenOff();
                             greenOn();
                             eputs("Moving Forward\r\n");
-                            moveForward(62, 60);
+                            moveForward(61, 60);
                             soft_delay(8000000);
                             displayMotorSpeeds();
                             soft_delay(3000000);
